@@ -46,11 +46,12 @@ func (router *Router) RegisterController(c *Controller) {
 
 // Register Controller Actions
 type Action struct {
-	Name       	string
-	Pattern 	[]string
-	Method		string
-	Private 	bool
-	Handler 	ActionHandler
+	Name       		string
+	Pattern 		[]string
+	Method			string
+	Private 		bool
+	Handler 		ActionHandler
+	ErrorHandler	ErrorHandler
 }
 
 type ActionHandler func(http.ResponseWriter, *http.Request, []string)
@@ -97,7 +98,7 @@ func (router *Router) Route(w http.ResponseWriter, r *http.Request) {
 	for _, a := range controller.Actions {
 		mErr := a.Matches(params.Pattern, r.Method)
 		if mErr == nil {
-			token, err := router.Middleware(a, r)
+			token, err := router.AuthHandler(a, r)
 			if token.StatusCode == 0 && err == nil { // 0 indicates continue
 				a.Handler(w, r, params.Pattern)
 				return
@@ -172,14 +173,14 @@ func defaultErrorHandler(w http.ResponseWriter, r *http.Request, err error, stat
 }
 
 /* Router Auth Interface*/
-type AuthHandler func(*Action, *http.Request) (MiddlewareToken, error)
+type AuthHandler func(*Action, *http.Request) (AuthToken, error)
 
 type AuthToken struct {
 	HandleError 	bool
 	StatusCode		int
 }
 
-func defaultAuthHandler(a *Action, r *http.Request) (MiddlewareToken, error) {
+func defaultAuthHandler(a *Action, r *http.Request) (AuthToken, error) {
 	var err error
 	token := AuthToken {
 		HandleError: true,
