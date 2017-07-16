@@ -20,8 +20,8 @@ type Options struct {
 }
 
 type Router struct {
-	Controllers 	[]*Controller 		// Slice of pointers to controlers
-	Options 		*Options			// Pointer to options
+	Controllers		[]*Controller 		// Slice of pointers to controlers
+	Options			*Options			// Pointer to options
 	ErrorHandler	ActionHandler		// error handler action
 	AuthHandler		AuthHandler			// auth layer
 }
@@ -47,11 +47,11 @@ func (router *Router) RegisterController(c *Controller) {
 
 // Register Controller Actions
 type Action struct {
-	Name       		string
-	Pattern 		[]string
-	Method			string
-	Private 		bool
-	Handler 		ActionHandler
+	Name 		string
+	Pattern		[]string
+	Method		string
+	Private 	bool
+	Handler 	ActionHandler
 }
 
 type ActionHandler func(http.ResponseWriter, *http.Request, []string)
@@ -75,8 +75,6 @@ func (router *Router) Route(w http.ResponseWriter, r *http.Request) {
 		if strings.ToLower(contentType) == strings.ToLower(t) { cType = true }
 	}
 
-	// Set the header content type
-	w.Header().Set("Content-type", contentType)
 
 	// Return an error if not found
 	if !cType {
@@ -84,6 +82,9 @@ func (router *Router) Route(w http.ResponseWriter, r *http.Request) {
 		router.ErrorHandler(w, r, []string{string(http.StatusUnprocessableEntity), err.Error()})
 		return
 	}
+
+	// Set the header content type
+	w.Header().Set("Content-type", contentType)
 
 	// Evlauate the url
 	params := router.GetParams(r.URL.Path)
@@ -185,6 +186,7 @@ type AuthToken struct {
 func defaultAuthHandler(a *Action, r *http.Request) (AuthToken, error) {
 	var err error
 	token := AuthToken {
+		StatusCode:	0,
 		HandleError: true,
 	}
 	return token, err
