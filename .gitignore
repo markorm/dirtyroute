@@ -45,3 +45,8 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.name
+.idea/libraries/GOPATH__dirtyroute_.xml
+*.iml
+.idea/libraries/GOPATH__snoozeapi_.xml
+*.xml

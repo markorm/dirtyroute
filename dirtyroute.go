@@ -22,8 +22,8 @@ type Options struct {
 type Router struct {
 	Controllers 	[]*Controller 		// Slice of pointers to controlers
 	Options 		*Options			// Pointer to options
-	ErrorHandler	ErrorHandler		// Pointer to error handler
-	AuthHandler		AuthHandler			// Pointer to middleware
+	ErrorHandler	ActionHandler		// error handler action
+	AuthHandler		AuthHandler			// auth layer
 }
 
 func NewRouter(options *Options) *Router {
@@ -51,7 +51,6 @@ type Action struct {
 	Method			string
 	Private 		bool
 	Handler 		ActionHandler
-	ErrorHandler	ErrorHandler
 }
 
 type ActionHandler func(http.ResponseWriter, *http.Request, []string)
@@ -78,7 +77,7 @@ func (router *Router) Route(w http.ResponseWriter, r *http.Request) {
 	// Return an error if not found
 	if !cType {
 		err = errors.New("Unsupported content type")
-		router.ErrorHandler(w, r, err, http.StatusUnprocessableEntity)
+		router.ErrorHandler(w, r, []string{string(http.StatusUnprocessableEntity), err.Error()})
 		return
 	}
 
@@ -89,7 +88,7 @@ func (router *Router) Route(w http.ResponseWriter, r *http.Request) {
 	var controller *Controller
 	controller, err = router.GetController(params.Controller)
 	if err != nil {
-		router.ErrorHandler(w, r, err, http.StatusNotFound)
+		router.ErrorHandler(w, r, []string{string(http.StatusNotFound), err.Error()})
 		return
 	}
 
@@ -104,12 +103,13 @@ func (router *Router) Route(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if token.HandleError && err != nil {
-				router.ErrorHandler(w, r, err, token.StatusCode)
+				router.ErrorHandler(w, r, []string{string(token.StatusCode), err.Error()})
 				return
 			}
 		}
 	}
-	router.ErrorHandler(w, r, err, http.StatusNotFound)
+
+	router.ErrorHandler(w, r, []string{string(http.StatusNotFound), err.Error()})
 }
 
 // Check the action pattern matches path params and method
@@ -166,10 +166,8 @@ func (router *Router) GetController(name string) (*Controller, error) {
 }
 
 /* Router Error Handler Interface*/
-type ErrorHandler func(http.ResponseWriter, *http.Request, error, int) //int is http status code
-
-func defaultErrorHandler(w http.ResponseWriter, r *http.Request, err error, status int) {
-	fmt.Fprint(w, "Error: STATUS ", status, " : ERROR ", err.Error())
+func defaultErrorHandler(w http.ResponseWriter, r *http.Request, args []string) {
+	fmt.Fprint(w, "Error: STATUS ", args[1], " : ERROR ", args[1])
 }
 
 /* Router Auth Interface*/
