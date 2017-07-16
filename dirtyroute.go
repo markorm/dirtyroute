@@ -26,6 +26,7 @@ type Router struct {
 	AuthHandler		AuthHandler			// auth layer
 }
 
+// Constructor for the new router
 func NewRouter(options *Options) *Router {
 	router := Router{}
 	router.Options = options
@@ -73,6 +74,9 @@ func (router *Router) Route(w http.ResponseWriter, r *http.Request) {
 	for _, t := range router.Options.ContentTypes {
 		if strings.ToLower(contentType) == strings.ToLower(t) { cType = true }
 	}
+
+	// Set the header content type
+	w.Header().Set("Content-type", contentType)
 
 	// Return an error if not found
 	if !cType {
