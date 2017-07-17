@@ -130,7 +130,7 @@ func (a *Action) Matches(pattern []string, method string) error {
 			if p == pattern[i] { matches++; continue }							// direct match
 			if strings.Contains(p, "{i||s}") { matches++; continue } 			// int or string arg
 			if strings.Contains(p, "{i}") && isint { matches++; continue } 		// int arg
-			if strings.Contains(p, "{s}") && !isint { matches++; } 				// string arg
+			if strings.Contains(p, "{s}") && !isint { matches++ } 				// string arg
 		}
 	}
 	if matches != len(a.Pattern) { err = errors.New("Pattern did not match"); }
